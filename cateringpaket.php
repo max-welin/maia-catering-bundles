@@ -118,7 +118,7 @@ add_filter( 'woocommerce_add_to_cart_validation', function ( $passed, $product_i
 	return $passed;
 }, 10, 3 );
 
-// Price on the product page: "60 kr per person, ink moms".
+// Price on the product page: "60 kr per person, inkl. moms".
 add_filter( 'woocommerce_get_price_html', function ( $html, $product ) {
 	if ( is_admin() || ! is_product() || ! $product || ! cateringpaket_min( $product ) ) {
 		return $html;
@@ -126,7 +126,7 @@ add_filter( 'woocommerce_get_price_html', function ( $html, $product ) {
 	$price    = (float) wc_get_price_to_display( $product );
 	$decimals = floor( $price ) == $price ? 0 : wc_get_price_decimals();
 	return wc_price( $price, array( 'decimals' => $decimals ) )
-		. ' <span class="package-per-person">' . esc_html__( 'per person, ink moms', 'cateringpaket' ) . '</span>';
+		. ' <span class="package-per-person">' . esc_html__( 'per person, inkl. moms', 'cateringpaket' ) . '</span>';
 }, 20, 2 );
 
 // Body class on package products, so the page can be styled separately.

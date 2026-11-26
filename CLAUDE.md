@@ -27,6 +27,7 @@ Code (comments, identifiers, CSS classes) is in English, but all customer- and a
    - Hides the original fields with `.up-hidden` (they stay in the form and are submitted normally) and inserts its own `.up-paket` UI before the add-to-cart button.
    - All writes go through `setValue()`, which dispatches `input` + `change` so the add-ons plugin and theme see the changes. The visible people count writes to the real WooCommerce quantity input.
    - The add-to-cart button is disabled until every group's selections sum exactly to the number of people.
+   - **Split layout:** if the page template contains an element with class `cateringpaket-full` (added by hand in the Elementor single-product template, below the image + summary row), step 1 stays in the form and steps 2+, the summary and a proxy add-to-cart button are moved into that element. The proxy clicks the real (hidden) button, so submission is unchanged. Without the element everything stays in the form. Group cards there are 3/2/1 columns at desktop/tablet (≤1024px)/mobile (≤480px).
 
 Because the JS depends on the add-ons plugin's markup, the theme (Elementor) and possible optimisation plugins, changes to selectors/DOM walking should be tested against the actual product page. CSS uses many `!important` overrides deliberately to beat theme/Elementor button and input styles; classes are prefixed `up-`.
 

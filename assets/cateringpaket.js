@@ -155,6 +155,39 @@
         if (button) button.insertAdjacentElement('beforebegin', ui);
         else form.appendChild(ui);
 
+        // Split layout: if the page template has a .cateringpaket-full element, steps 2+,
+        // the summary and a proxy add-to-cart button are moved there (full width below the
+        // image). Step 1 stays in the form. The original button stays hidden in the form and
+        // is clicked by the proxy, so the form submits exactly as before.
+        const parts = [ui];
+        const target = document.querySelector('.cateringpaket-full');
+        let proxy = null;
+        if (target) {
+            const full = document.createElement('div');
+            full.className = 'up-package up-package--full';
+            [...ui.children].slice(1).forEach(el => full.appendChild(el));
+            if (button) {
+                proxy = document.createElement('button');
+                proxy.type = 'button';
+                proxy.className = 'up-submit';
+                proxy.textContent = (button.tagName === 'INPUT' ? button.value : button.textContent).trim();
+                proxy.addEventListener('click', () => { if (!button.disabled) button.click(); });
+                full.appendChild(proxy);
+                button.classList.add('up-hidden');
+                (qtyInput.closest('.quantity') || qtyInput).classList.add('up-hidden');
+            }
+            target.appendChild(full);
+            ui.classList.add('up-package--split');
+            parts.push(full);
+        }
+        const q = sel => {
+            for (const p of parts) {
+                const el = p.querySelector(sel);
+                if (el) return el;
+            }
+            return null;
+        };
+
         const peopleInput = ui.querySelector('#up-people');
         const people = () => Math.max(MIN, num(qtyInput.value));
 
@@ -166,16 +199,16 @@
         function update() {
             const total = people();
             if (document.activeElement !== peopleInput) peopleInput.value = total;
-            ui.querySelector('[data-people="-1"]').disabled = total <= MIN;
-            ui.querySelector('[data-calc]').textContent = total + ' personer × ' + fmt.format(PRICE);
-            ui.querySelector('[data-sum]').textContent = fmt.format(total * PRICE);
+            q('[data-people="-1"]').disabled = total <= MIN;
+            q('[data-calc]').textContent = total + ' personer × ' + fmt.format(PRICE);
+            q('[data-sum]').textContent = fmt.format(total * PRICE);
 
             let allOk = true;
             groups.forEach((g, gi) => {
                 if (!g.items.length) return;
                 const sum = g.items.reduce((s, it) => s + num(it.input.value), 0);
                 const left = total - sum;
-                const badge = ui.querySelector('[data-badge="' + gi + '"]');
+                const badge = q('[data-badge="' + gi + '"]');
                 if (left > 0) {
                     badge.textContent = sum + ' av ' + total + ' valda · ' + left + ' kvar';
                     badge.className = 'up-badge up-badge--remaining'; allOk = false;
@@ -188,20 +221,21 @@
                 }
                 g.items.forEach((it, ii) => {
                     const c = num(it.input.value);
-                    const card = ui.querySelector('[data-card="' + gi + '-' + ii + '"]');
+                    const card = q('[data-card="' + gi + '-' + ii + '"]');
                     card.classList.toggle('is-active', c > 0);
                     card.querySelector('.up-count').textContent = c;
                     card.querySelector('[data-d="-1"]').disabled = c === 0;
                     card.querySelector('[data-d="1"]').disabled = left <= 0;
                 });
             });
-            if (button) {
-                button.disabled = !allOk;
-                button.setAttribute('aria-disabled', String(!allOk));
-            }
+            [button, proxy].forEach(btn => {
+                if (!btn) return;
+                btn.disabled = !allOk;
+                btn.setAttribute('aria-disabled', String(!allOk));
+            });
         }
 
-        ui.addEventListener('click', e => {
+        const onClick = e => {
             const pb = e.target.closest('[data-people]');
             if (pb) { setPeople(people() + num(pb.dataset.people)); return; }
             const b = e.target.closest('.up-btn');
@@ -210,7 +244,8 @@
             const next = Math.max(0, num(it.input.value) + num(b.dataset.d));
             setValue(it.input, next === 0 ? '' : next);
             update();
-        });
+        };
+        parts.forEach(p => p.addEventListener('click', onClick));
 
         peopleInput.addEventListener('input', () => {
             const v = num(peopleInput.value);

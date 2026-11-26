@@ -8,11 +8,16 @@ body.cateringpaket-product .elementor-location-single .e-con.e-con-boxed {
     font-size: 15px;
 }
 
-form.cart.up-js {
+/* Variables are also set on .up-package, since the full-width part lives outside the form */
+form.cart.up-js,
+.up-package {
     --up-green: #0D4B26;
     --up-text: #414141;
     --up-muted: #5C5C5C;
     --up-line: #E8E8E8;
+}
+
+form.cart.up-js {
     display: block !important;
 }
 
@@ -27,6 +32,12 @@ form.cart.up-js .package-qty-heading {
     gap: 32px;
     margin-bottom: 16px;
     color: var(--up-text);
+}
+
+/* Split layout: step 1 stays in the form (next to the image), the rest goes to .cateringpaket-full */
+.up-package--split {
+    padding-bottom: 32px;
+    border-bottom: 1px solid var(--up-line);
 }
 
 .up-step {
@@ -184,6 +195,11 @@ form.cart.up-js .package-qty-heading {
     padding-left: 40px;
 }
 
+/* Full-width part: 3 columns on desktop, 2 on tablet, 1 on mobile (see media queries) */
+.up-package--full .up-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
 .up-card {
     display: flex;
     align-items: center;
@@ -271,7 +287,8 @@ form.cart.up-js .package-qty-heading {
     color: var(--up-green);
 }
 
-form.cart.up-js .single_add_to_cart_button {
+form.cart.up-js .single_add_to_cart_button,
+.up-package .up-submit {
     display: block;
     width: 100%;
     float: none;
@@ -289,15 +306,33 @@ form.cart.up-js .single_add_to_cart_button {
     cursor: pointer;
 }
 
-form.cart.up-js .single_add_to_cart_button:disabled {
+form.cart.up-js .single_add_to_cart_button:disabled,
+.up-package .up-submit:disabled {
     background: #E6E6E6 !important;
     color: #6E6E6E !important;
     opacity: 1;
     cursor: not-allowed;
 }
 
+/* The proxy button is a plain <button>, which doesn't inherit the page font by default */
+.up-package .up-submit {
+    font-family: inherit;
+    line-height: 1.2;
+}
+
+/* Pull the button closer to the summary than the 32px gap between steps */
+.up-package--full > .up-submit {
+    margin-top: -16px;
+}
+
+@media (max-width: 1024px) {
+    .up-package--full .up-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
 @media (max-width: 480px) {
-    .up-grid {
+    .up-package .up-grid {
         grid-template-columns: minmax(0, 1fr);
         padding-left: 0;
     }
