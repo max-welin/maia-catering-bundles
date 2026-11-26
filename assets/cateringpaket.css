@@ -228,11 +228,34 @@ form.cart.up-js .package-qty-heading {
     flex: none;
 }
 
-.up-count {
-    min-width: 28px;
+/* The count is an input so amounts can be typed in; reset theme input styles so it looks like plain text */
+.up-package .up-count {
+    flex: none !important;
+    width: 36px !important;
+    min-width: 0 !important;
+    max-width: 36px !important;
+    height: 30px !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 1.5px solid transparent !important;
+    border-radius: 8px !important;
+    background: transparent !important;
+    box-shadow: none !important;
     text-align: center;
-    font-size: 17px;
-    font-weight: 700;
+    font: inherit;
+    font-size: 17px !important;
+    font-weight: 700 !important;
+    line-height: 1 !important;
+    color: var(--up-text) !important;
+    cursor: text;
+}
+
+/* Show it's editable */
+.up-package .up-count:hover,
+.up-package .up-count:focus {
+    border-color: #DADADA !important;
+    background: #fff !important;
 }
 
 .up-package .up-btn {

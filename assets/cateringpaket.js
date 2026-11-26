@@ -136,7 +136,7 @@
                       '<span class="up-name">' + esc(it.name) + '</span>' +
                       '<div class="up-stepper">' +
                         '<button type="button" class="up-btn" data-g="' + gi + '" data-i="' + ii + '" data-d="-1" aria-label="Ta bort en ' + esc(it.name) + '">' + ICON_MINUS + '</button>' +
-                        '<span class="up-count">0</span>' +
+                        '<input type="text" class="up-count" value="0" inputmode="numeric" pattern="[0-9]*" autocomplete="off" data-g="' + gi + '" data-i="' + ii + '" aria-label="Antal ' + esc(it.name) + '">' +
                         '<button type="button" class="up-btn" data-g="' + gi + '" data-i="' + ii + '" data-d="1" aria-label="Lägg till en ' + esc(it.name) + '">' + ICON_PLUS + '</button>' +
                       '</div>' +
                     '</div>'
@@ -223,7 +223,8 @@
                     const c = num(it.input.value);
                     const card = q('[data-card="' + gi + '-' + ii + '"]');
                     card.classList.toggle('is-active', c > 0);
-                    card.querySelector('.up-count').textContent = c;
+                    const countEl = card.querySelector('.up-count');
+                    if (document.activeElement !== countEl) countEl.value = c;
                     card.querySelector('[data-d="-1"]').disabled = c === 0;
                     card.querySelector('[data-d="1"]').disabled = left <= 0;
                 });
@@ -245,7 +246,39 @@
             setValue(it.input, next === 0 ? '' : next);
             update();
         };
-        parts.forEach(p => p.addEventListener('click', onClick));
+        // The count in each card is also a text field, so large amounts can be typed in.
+        // Typing more than is left is allowed; the badge then shows "för många" and the
+        // add-to-cart button stays disabled, same as with the buttons.
+        const countItem = el => groups[num(el.dataset.g)].items[num(el.dataset.i)];
+        const onCountInput = e => {
+            const el = e.target;
+            if (!el.classList.contains('up-count')) return;
+            const digits = el.value.replace(/\D/g, '');
+            if (digits !== el.value) el.value = digits;
+            setValue(countItem(el).input, num(digits) || '');
+            update();
+        };
+        const onCountChange = e => {
+            if (e.target.classList.contains('up-count')) e.target.value = num(countItem(e.target).input.value);
+        };
+        const onCountFocus = e => {
+            if (e.target.classList.contains('up-count')) e.target.select();
+        };
+        const onCountKey = e => {
+            // Enter confirms the number instead of submitting the form
+            if (e.key === 'Enter' && e.target.classList.contains('up-count')) {
+                e.preventDefault();
+                e.target.blur();
+            }
+        };
+
+        parts.forEach(p => {
+            p.addEventListener('click', onClick);
+            p.addEventListener('input', onCountInput);
+            p.addEventListener('change', onCountChange);
+            p.addEventListener('focusin', onCountFocus);
+            p.addEventListener('keydown', onCountKey);
+        });
 
         peopleInput.addEventListener('input', () => {
             const v = num(peopleInput.value);
