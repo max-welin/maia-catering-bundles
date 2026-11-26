@@ -8,7 +8,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 There is no build step, package manager, linter config or test suite. JS is vanilla ES2015+ (no bundler, no jQuery); CSS is hand-written. To try changes, the plugin must run inside a WordPress + WooCommerce site (requires WP 6.0+, PHP 7.4+, WC 7.0+). Quick syntax check: `php -l cateringpaket.php`.
 
-UI strings, comments and code identifiers are in **Swedish** — keep it that way. Text domain: `cateringpaket`.
+Code (comments, identifiers, CSS classes) is in English, but all customer- and admin-facing text is **Swedish** and must stay Swedish. The `cateringpaket` slug (text domain, handles, function/constant prefix) and the stored meta keys `_cateringpaket_enabled`/`_cateringpaket_min` are kept as-is; renaming the meta keys would lose existing product settings.
 
 ## Architecture
 

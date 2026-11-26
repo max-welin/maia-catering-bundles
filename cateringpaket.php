@@ -20,7 +20,7 @@ const CATERINGPAKET_META_ENABLED = '_cateringpaket_enabled';
 const CATERINGPAKET_META_MIN     = '_cateringpaket_min';
 const CATERINGPAKET_DEFAULT_MIN  = 10;
 
-// Pluginet rör inte ordrar – deklarera kompatibilitet med WooCommerce HPOS.
+// The plugin never touches orders – declare WooCommerce HPOS compatibility.
 add_action( 'before_woocommerce_init', function () {
 	if ( class_exists( \Automattic\WooCommerce\Utilities\FeaturesUtil::class ) ) {
 		\Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility( 'custom_order_tables', __FILE__, true );
@@ -28,7 +28,7 @@ add_action( 'before_woocommerce_init', function () {
 } );
 
 /**
- * Minsta antal personer för en produkt, eller 0 om den inte är en paketprodukt.
+ * Minimum number of people for a product, or 0 if it is not a package product.
  *
  * @param WC_Product|int $product
  */
@@ -42,7 +42,7 @@ function cateringpaket_min( $product ) {
 }
 
 /* -------------------------------------------------------------------------
- * Admin: inställningar på produkten (fliken Allmänt)
+ * Admin: product settings (General tab)
  * ---------------------------------------------------------------------- */
 
 add_action( 'woocommerce_product_options_general_product_data', function () {
@@ -68,7 +68,7 @@ add_action( 'woocommerce_product_options_general_product_data', function () {
 } );
 
 add_action( 'woocommerce_admin_process_product_object', function ( $product ) {
-	$enabled = isset( $_POST[ CATERINGPAKET_META_ENABLED ] ) ? 'yes' : 'no'; // phpcs:ignore WordPress.Security.NonceVerification -- WooCommerce verifierar nonce.
+	$enabled = isset( $_POST[ CATERINGPAKET_META_ENABLED ] ) ? 'yes' : 'no'; // phpcs:ignore WordPress.Security.NonceVerification -- WooCommerce verifies the nonce.
 	$product->update_meta_data( CATERINGPAKET_META_ENABLED, $enabled );
 
 	$min = isset( $_POST[ CATERINGPAKET_META_MIN ] ) ? absint( wp_unslash( $_POST[ CATERINGPAKET_META_MIN ] ) ) : 0; // phpcs:ignore WordPress.Security.NonceVerification
@@ -80,23 +80,23 @@ add_action( 'woocommerce_admin_process_product_object', function ( $product ) {
 } );
 
 /* -------------------------------------------------------------------------
- * Butik: antal, pris och stegformulär
+ * Storefront: quantity, price and step form
  * ---------------------------------------------------------------------- */
 
-// Rubrik för antal (visas bara om JS inte körs – annars ersätts den av steg 1).
+// Quantity heading (only shown if JS does not run – otherwise replaced by step 1).
 add_action( 'woocommerce_before_add_to_cart_quantity', function () {
 	global $product;
 	$min = $product ? cateringpaket_min( $product ) : 0;
 	if ( $min ) {
 		printf(
-			'<p class="paket-antal-rubrik"><strong>%s</strong> (%s)</p>',
+			'<p class="package-qty-heading"><strong>%s</strong> (%s)</p>',
 			esc_html__( 'Hur många är ni?', 'cateringpaket' ),
 			esc_html( sprintf( __( 'minst %d', 'cateringpaket' ), $min ) )
 		);
 	}
 } );
 
-// Minsta antal.
+// Minimum quantity.
 add_filter( 'woocommerce_quantity_input_args', function ( $args, $product ) {
 	$min = $product ? cateringpaket_min( $product ) : 0;
 	if ( $min ) {
@@ -108,7 +108,7 @@ add_filter( 'woocommerce_quantity_input_args', function ( $args, $product ) {
 	return $args;
 }, 10, 2 );
 
-// Spärr även på serversidan, så att färre än minsta antal inte kan läggas i varukorgen.
+// Server-side check too, so fewer than the minimum cannot be added to the cart.
 add_filter( 'woocommerce_add_to_cart_validation', function ( $passed, $product_id, $quantity ) {
 	$min = cateringpaket_min( $product_id );
 	if ( $min && $quantity < $min ) {
@@ -118,26 +118,26 @@ add_filter( 'woocommerce_add_to_cart_validation', function ( $passed, $product_i
 	return $passed;
 }, 10, 3 );
 
-// Pris på produktsidan: "60 kr per person, ink moms".
+// Price on the product page: "60 kr per person, ink moms".
 add_filter( 'woocommerce_get_price_html', function ( $html, $product ) {
 	if ( is_admin() || ! is_product() || ! $product || ! cateringpaket_min( $product ) ) {
 		return $html;
 	}
-	$pris = (float) wc_get_price_to_display( $product );
-	$dec  = floor( $pris ) == $pris ? 0 : wc_get_price_decimals();
-	return wc_price( $pris, array( 'decimals' => $dec ) )
-		. ' <span class="paket-per-person">' . esc_html__( 'per person, ink moms', 'cateringpaket' ) . '</span>';
+	$price    = (float) wc_get_price_to_display( $product );
+	$decimals = floor( $price ) == $price ? 0 : wc_get_price_decimals();
+	return wc_price( $price, array( 'decimals' => $decimals ) )
+		. ' <span class="package-per-person">' . esc_html__( 'per person, ink moms', 'cateringpaket' ) . '</span>';
 }, 20, 2 );
 
-// Body-klass på paketprodukter, så att sidan kan stylas separat.
+// Body class on package products, so the page can be styled separately.
 add_filter( 'body_class', function ( $classes ) {
 	if ( function_exists( 'is_product' ) && is_product() && cateringpaket_min( get_queried_object_id() ) ) {
-		$classes[] = 'cateringpaket-produkt';
+		$classes[] = 'cateringpaket-product';
 	}
 	return $classes;
 } );
 
-// CSS och JS laddas bara på produktsidor för paketprodukter.
+// CSS and JS are only loaded on product pages for package products.
 add_action( 'wp_enqueue_scripts', function () {
 	if ( ! is_product() ) {
 		return;
@@ -148,7 +148,7 @@ add_action( 'wp_enqueue_scripts', function () {
 		return;
 	}
 
-	// Filens ändringstid som version, så att cachen bryts automatiskt när filen ändras.
+	// Use the file's modification time as version, so the cache is busted automatically when it changes.
 	$ver = function ( $file ) {
 		$mtime = @filemtime( plugin_dir_path( __FILE__ ) . $file );
 		return $mtime ? (string) $mtime : CATERINGPAKET_VERSION;
@@ -166,7 +166,7 @@ add_action( 'wp_enqueue_scripts', function () {
 	);
 } );
 
-// Undanta skriptet från optimeringsplugin som skjuter upp eller slår ihop JS.
+// Exclude the script from optimisation plugins that defer or combine JS.
 add_filter( 'script_loader_tag', function ( $tag, $handle ) {
 	if ( 'cateringpaket' === $handle ) {
 		$tag = str_replace( ' src=', ' data-no-optimize="1" data-no-defer="1" data-cfasync="false" src=', $tag );

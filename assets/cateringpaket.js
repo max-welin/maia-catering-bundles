@@ -1,4 +1,4 @@
-/* Cateringpaket – stegformulär på produktsidan */
+/* Cateringpaket – step form on the product page */
 (function () {
     const CFG = window.CateringpaketConfig || {};
     const PRICE = Number(CFG.price) || 0;
@@ -13,7 +13,7 @@
     const num = v => parseInt(v, 10) || 0;
 
     function fieldInputs(form, qty) {
-        return [...form.querySelectorAll('input')].filter(i => i !== qty && !SKIP.includes(i.type) && !i.closest('.up-paket'));
+        return [...form.querySelectorAll('input')].filter(i => i !== qty && !SKIP.includes(i.type) && !i.closest('.up-package'));
     }
 
     function labelText(input) {
@@ -33,9 +33,9 @@
         return t.replace(/\*/g, '').replace(/\s+/g, ' ').trim();
     }
 
-    // Läser fälten i den ordning de ligger i Product input fields.
-    // Ett Paragraph-fält (utan inmatning) startar en ny grupp och blir dess rubrik,
-    // Number-fälten under det blir gruppens val.
+    // Reads the fields in the order they appear in Product input fields.
+    // A Paragraph field (no input) starts a new group and becomes its heading,
+    // the Number fields below it become the group's options.
     function buildGroups(container, inputs, skip) {
         const groups = [];
         let current = null;
@@ -58,14 +58,14 @@
         return groups.filter(g => g.items.length);
     }
 
-    // Skicka event så att tillägg-pluginet och temat uppfattar ändringen
+    // Dispatch events so the add-ons plugin and the theme notice the change
     function setValue(input, value) {
         input.value = value;
         input.dispatchEvent(new Event('input', { bubbles: true }));
         input.dispatchEvent(new Event('change', { bubbles: true }));
     }
 
-    // Göm originalfälten (de ligger kvar i formuläret och skickas med som vanligt)
+    // Hide the original fields (they stay in the form and are submitted as usual)
     function hideOriginals(form, inputs, qtyInput, button) {
         const blocks = el => el.contains(qtyInput) || (button && el.contains(button));
         let box = inputs[0].parentElement;
@@ -97,28 +97,28 @@
             if (attempt < 10) setTimeout(() => init(attempt + 1), 500);
             return;
         }
-        if (!qtyInput || form.querySelector('.up-paket')) return;
+        if (!qtyInput || form.querySelector('.up-package')) return;
 
         const button = form.querySelector('.single_add_to_cart_button, button[type="submit"]');
         const inputs = fieldInputs(form, qtyInput);
         let container = inputs[0].parentElement;
         while (container && container !== form && !inputs.every(i => container.contains(i))) container = container.parentElement;
-        const skip = el => el.contains(qtyInput) || (button && el.contains(button)) || el.classList.contains('paket-antal-rubrik');
+        const skip = el => el.contains(qtyInput) || (button && el.contains(button)) || el.classList.contains('package-qty-heading');
         const groups = buildGroups(container || form, inputs, skip);
         if (!groups.length) return;
 
         inputs.forEach(input => { input.min = 0; input.step = 1; });
 
-        // Bygg gränssnittet
+        // Build the UI
         const ui = document.createElement('div');
-        ui.className = 'up-paket';
+        ui.className = 'up-package';
         let html =
             '<section class="up-step">' +
-              '<div class="up-head"><span class="up-num">1</span><label for="up-antal" class="up-title">Hur många är ni?</label></div>' +
+              '<div class="up-head"><span class="up-num">1</span><label for="up-people" class="up-title">Hur många är ni?</label></div>' +
               '<div class="up-row">' +
                 '<div class="up-qty">' +
                   '<button type="button" class="up-qbtn" data-people="-1" aria-label="Färre personer">' + ICON_MINUS + '</button>' +
-                  '<input id="up-antal" type="number" min="' + MIN + '" step="1" inputmode="numeric">' +
+                  '<input id="up-people" type="number" min="' + MIN + '" step="1" inputmode="numeric">' +
                   '<button type="button" class="up-qbtn" data-people="1" aria-label="Fler personer">' + ICON_PLUS + '</button>' +
                 '</div>' +
                 '<span class="up-muted">Minst ' + MIN + ' personer</span>' +
@@ -155,7 +155,7 @@
         if (button) button.insertAdjacentElement('beforebegin', ui);
         else form.appendChild(ui);
 
-        const peopleInput = ui.querySelector('#up-antal');
+        const peopleInput = ui.querySelector('#up-people');
         const people = () => Math.max(MIN, num(qtyInput.value));
 
         function setPeople(n) {
@@ -178,13 +178,13 @@
                 const badge = ui.querySelector('[data-badge="' + gi + '"]');
                 if (left > 0) {
                     badge.textContent = sum + ' av ' + total + ' valda · ' + left + ' kvar';
-                    badge.className = 'up-badge up-badge--kvar'; allOk = false;
+                    badge.className = 'up-badge up-badge--remaining'; allOk = false;
                 } else if (left < 0) {
                     badge.textContent = (-left) + ' för många – ta bort ' + (-left);
                     badge.className = 'up-badge up-badge--over'; allOk = false;
                 } else {
                     badge.textContent = sum + ' av ' + total + ' valda';
-                    badge.className = 'up-badge up-badge--klar';
+                    badge.className = 'up-badge up-badge--done';
                 }
                 g.items.forEach((it, ii) => {
                     const c = num(it.input.value);
