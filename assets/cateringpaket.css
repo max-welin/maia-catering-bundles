@@ -34,10 +34,11 @@ form.cart.up-js .package-qty-heading {
     color: var(--up-text);
 }
 
-/* Split layout: step 1 stays in the form (next to the image), the rest goes to .cateringpaket-full */
-.up-package--split {
-    padding-bottom: 32px;
-    border-bottom: 1px solid var(--up-line);
+/* Split layout: step 1 stays in the form (next to the image), the rest goes to .cateringpaket-full.
+   The divider between step 1 and step 2 sits at the top of the full-width part. */
+.up-package--full {
+    padding-top: 32px;
+    border-top: 1px solid var(--up-line);
 }
 
 .up-step {
@@ -354,9 +355,15 @@ form.cart.up-js .single_add_to_cart_button:disabled,
     }
 }
 
-@media (max-width: 480px) {
+/* Elementor's mobile breakpoint */
+@media (max-width: 767px) {
     .up-package .up-grid {
         grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+@media (max-width: 480px) {
+    .up-package .up-grid {
         padding-left: 0;
     }
 
