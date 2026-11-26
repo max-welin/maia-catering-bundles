@@ -148,8 +148,14 @@ add_action( 'wp_enqueue_scripts', function () {
 		return;
 	}
 
-	wp_enqueue_style( 'cateringpaket', CATERINGPAKET_URL . 'assets/cateringpaket.css', array(), CATERINGPAKET_VERSION );
-	wp_enqueue_script( 'cateringpaket', CATERINGPAKET_URL . 'assets/cateringpaket.js', array(), CATERINGPAKET_VERSION, true );
+	// Filens ändringstid som version, så att cachen bryts automatiskt när filen ändras.
+	$ver = function ( $file ) {
+		$mtime = @filemtime( plugin_dir_path( __FILE__ ) . $file );
+		return $mtime ? (string) $mtime : CATERINGPAKET_VERSION;
+	};
+
+	wp_enqueue_style( 'cateringpaket', CATERINGPAKET_URL . 'assets/cateringpaket.css', array(), $ver( 'assets/cateringpaket.css' ) );
+	wp_enqueue_script( 'cateringpaket', CATERINGPAKET_URL . 'assets/cateringpaket.js', array(), $ver( 'assets/cateringpaket.js' ), true );
 	wp_add_inline_script(
 		'cateringpaket',
 		'window.CateringpaketConfig = ' . wp_json_encode( array(
